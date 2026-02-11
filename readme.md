@@ -91,6 +91,9 @@ Frontend Result Rendering
 ```
 frontend/
 │
+├── public/
+│   └── models/
+│       └── human_anatomy.glb
 ├── src/
 │   ├── components/
 │   │   ├── AnatomyModel.jsx
