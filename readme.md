@@ -329,7 +329,6 @@ npm run dev
 
 # 🏊 Swimlane Diagram (GitHub Mermaid Supported)
 
-Paste this inside README:
 
 ```mermaid
 sequenceDiagram
@@ -381,7 +380,4 @@ This project demonstrates:
 
 This application is for educational and informational purposes only. It does not provide medical diagnosis or replace consultation with licensed healthcare professionals.
 
----
 
-
-Tell me which one you need.
