@@ -1,75 +1,72 @@
-🧠 AI-Powered 3D Symptom Guidance Web Application
 
-An AI-powered web-based symptom guidance system that allows users to interact with a 3D human anatomy model, pinpoint pain locations, answer structured medical questions, and receive AI-generated symptom analysis including possible causes, home care guidance, OTC suggestions, and red-flag warnings.
+# 🧠 AI-Powered 3D Symptom Guidance Web Application
 
-⚠️ This application provides informational guidance only and does not replace professional medical advice.
+An AI-powered web-based symptom guidance system that allows users to interact with a **3D human anatomy model**, pinpoint pain locations, answer structured symptom questions, and receive AI-generated guidance including:
 
-🚀 Project Overview
+* **Ranked possible causes**
+* **Home remedies**
+* **OTC (non-prescription) guidance**
+* **Red-flag warnings**
+
+> ⚠️ **Disclaimer:** This tool provides informational guidance only and does NOT replace professional medical advice.
+
+---
+
+# 📌 Project Overview
 
 This project combines:
 
-3D Human Anatomy Visualization
+* **3D Human Anatomy Visualization**
+* **Interactive Pain Mapping**
+* **Rule-Based Filtering Engine**
+* **Structured AI Prompt Engineering**
+* **Gemini API Integration**
+* **Modern Full-Stack Architecture**
 
-Interactive Body Region Mapping
+The goal is to simulate a smart symptom checker while maintaining medical safety constraints.
 
-Rule-Based Symptom Filtering
+---
 
-Gemini AI Integration
+# 🎯 Objectives
 
-Structured Medical Prompt Engineering
+* Provide structured symptom guidance.
+* Allow intuitive pain selection via 3D model.
+* Integrate AI safely using guardrails.
+* Demonstrate full-stack + AI integration.
+* Build a portfolio-level academic project.
 
-Clean, Professional Web UI
+---
 
-The goal is to simulate a smart symptom checker while maintaining medical safety standards.
+# 🏗️ Tech Stack
 
-🎯 Objectives
+## 🔹 Frontend
 
-Provide users with structured symptom guidance.
+* **React (Vite)**
+* **Three.js**
+* **@react-three/fiber**
+* **@react-three/drei**
+* **Tailwind CSS**
+* **ShadCN UI**
 
-Allow intuitive pain selection via 3D human model.
+## 🔹 Backend
 
-Use AI responsibly with guardrails.
+* **Python 3.10+**
+* **FastAPI**
+* **Pydantic**
+* **Uvicorn**
+* **Gemini API**
 
-Demonstrate full-stack AI integration.
+## 🔹 Data Layer
 
-Showcase modern web technologies for portfolio use.
+* JSON-based pain mapping
+* Rule-based filtering system
+* Structured prompt templates
 
-🏗️ Tech Stack
-Frontend
+---
 
-React (Vite)
+# 🧩 System Architecture
 
-Three.js
-
-@react-three/fiber
-
-@react-three/drei
-
-Tailwind CSS
-
-ShadCN UI
-
-Backend
-
-Python 3.10+
-
-FastAPI
-
-Pydantic
-
-Uvicorn
-
-Gemini API
-
-Data Handling
-
-JSON-based pain mapping
-
-Rule-based filtering layer
-
-Structured AI prompts
-
-🧩 System Architecture
+```
 User
   ↓
 React Frontend (3D Model + Form)
@@ -83,9 +80,15 @@ Gemini API
 Structured Response
   ↓
 Frontend Result Rendering
+```
 
-📂 Project Structure
-Frontend Structure
+---
+
+# 📂 Project Structure
+
+## 📁 Frontend
+
+```
 frontend/
 │
 ├── src/
@@ -103,8 +106,13 @@ frontend/
 │   │
 │   ├── App.jsx
 │   └── main.jsx
+```
 
-Backend Structure
+---
+
+## 📁 Backend
+
+```
 backend/
 │
 ├── app/
@@ -115,41 +123,47 @@ backend/
 │
 ├── requirements.txt
 └── .env
+```
 
-🧠 Core Features
-1️⃣ 3D Human Anatomy Model
+---
 
-Interactive GLB model
+# 🧠 Core Features
 
-Clickable body regions
+## 1️⃣ 3D Human Anatomy Model
 
-Front/Back view toggle
+* Interactive `.glb` model
+* Clickable body regions
+* Front/Back toggle
+* Orbit controls
+* Smooth rotation and zoom
 
-Orbit controls
+**Model Sources:**
 
-Model Source:
+* Sketchfab (Free + CC License)
+* CGTrader (Free section)
+* TurboSquid (Free models)
 
-Sketchfab (Free downloadable, CC license)
+---
 
-Format: .glb
+## 2️⃣ Body Region Mapping
 
-2️⃣ Body Region Mapping
+Each mesh maps to an internal region ID:
 
-Each clickable mesh is mapped to an internal region ID:
-
-Example:
-
+```python
 "lower_back_left"
 "neck"
 "right_knee"
+```
 
+This triggers dynamic symptom questions.
 
-This triggers dynamic question generation.
+---
 
-3️⃣ Pain Mapping Logic
+## 3️⃣ Pain Mapping Logic (Rule-Based Layer)
 
-pain_map.py contains structured region definitions:
+Example:
 
+```python
 pain_map = {
     "lower_back_left": {
         "conditions": [
@@ -168,102 +182,82 @@ pain_map = {
         ]
     }
 }
+```
 
-4️⃣ AI Integration (Gemini)
+---
 
-AI receives structured prompt:
+## 4️⃣ AI Integration (Gemini)
 
-Location
+Structured prompt includes:
 
-Pain type
-
-Duration
-
-Additional symptoms
-
-Rule-based hints
+* Pain location
+* Pain type
+* Duration
+* Additional symptoms
+* Rule-based hints
 
 AI returns:
 
-Ranked causes
+* Ranked possible causes
+* Urgency level (Low / Medium / High)
+* OTC guidance (non-prescription only)
+* Home remedies
+* Red flag escalation advice
 
-Urgency level
+---
 
-OTC suggestions (non-prescription only)
+# 🔒 Safety Guardrails
 
-Home remedies
+* ❌ No prescription medicines
+* ❌ No medical diagnosis claims
+* ✅ Emergency escalation logic
+* ✅ Structured AI prompts
+* ✅ Mandatory disclaimer
+* ✅ Backend validation
 
-Red flag instructions
+---
 
-🔒 Safety Guardrails
+# 🔄 Application Flow
 
-No prescription medications allowed
+### Step 1 – User Opens App
 
-No diagnosis claims
+* 3D anatomy model loads
 
-Emergency escalation logic
+### Step 2 – User Selects Body Region
 
-Mandatory disclaimer
+* Mesh click detected
+* Region ID identified
 
-Structured prompt restrictions
+### Step 3 – Dynamic Form Generation
 
-🔄 Application Flow
+* Questions pulled from pain_map
 
-User opens homepage
+### Step 4 – Form Submission
 
-3D anatomy loads
+* JSON sent to backend
 
-User clicks body region
+### Step 5 – Backend Processing
 
-Dynamic symptom form appears
+* Rule-based filtering
+* Structured Gemini prompt generation
+* AI response parsing
 
-User submits responses
+### Step 6 – Result Display
 
-Backend processes data
+* Ranked causes
+* Urgency indicator
+* Remedies + OTC guidance
+* Red flag warnings
 
-Rule-based filtering applied
+---
 
-Gemini API called
+# 📡 API Design
 
-Structured response returned
+## POST `/analyze`
 
-Results displayed
+### Request Example
 
-📊 Functional Requirements
-
-Interactive 3D body
-
-Region detection
-
-Dynamic question rendering
-
-Backend API communication
-
-AI-generated results
-
-Emergency flagging
-
-Responsive UI
-
-⚙️ Non-Functional Requirements
-
-API response < 3 seconds
-
-Secure environment variables
-
-Mobile responsive
-
-Modular architecture
-
-Clean UI/UX
-
-Scalable backend design
-
-📌 API Endpoint Design
-POST /analyze
-
-Request:
-
+```json
 {
   "location": "lower_back_left",
   "pain_type": "sharp",
@@ -274,10 +268,11 @@ Request:
     "injury_history": true
   }
 }
+```
 
+### Response Example
 
-Response:
-
+```json
 {
   "possible_causes": [],
   "urgency": "Medium",
@@ -285,90 +280,108 @@ Response:
   "otc_guidance": [],
   "red_flags": []
 }
+```
 
-🧪 MVP Scope
+---
+
+# 🧪 MVP Scope
 
 Initial Supported Regions:
 
-Lower Back
+* Lower Back
+* Neck
+* Knee
+* Shoulder
+* Abdomen
 
-Neck
+Limit:
 
-Knee
+* 3–4 conditions per region
+* Basic rule engine
+* Clean structured AI output
 
-Shoulder
+---
 
-Abdomen
+# ⚙️ Installation Guide
 
-Limit to:
+## Backend Setup
 
-3–4 conditions per region
-
-Basic rule engine
-
-Structured AI response
-
-🛠️ Installation Guide
-Backend
+```bash
 cd backend
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # Mac/Linux
+venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 uvicorn app.main:app --reload
+```
 
-Frontend
+---
+
+## Frontend Setup
+
+```bash
 cd frontend
 npm install
 npm run dev
+```
 
-📈 Future Enhancements
+---
 
-Urdu language support
+# 🏊 Swimlane Diagram (GitHub Mermaid Supported)
 
-Medical database integration
+Paste this inside README:
 
-User history tracking
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant Gemini
 
-Authentication system
+    User->>Frontend: Open Application
+    Frontend->>Frontend: Load 3D Anatomy Model
+    User->>Frontend: Select Body Region
+    Frontend->>Frontend: Generate Dynamic Questions
+    User->>Frontend: Submit Symptoms
+    Frontend->>Backend: POST /analyze (JSON Data)
+    Backend->>Backend: Apply Rule-Based Filtering
+    Backend->>Gemini: Send Structured Prompt
+    Gemini-->>Backend: AI Structured Response
+    Backend-->>Frontend: Return Final JSON
+    Frontend-->>User: Display Results
+```
 
-Telemedicine integration
+---
 
-Severity probability scoring
+# 🎓 Academic Value
 
-⚠️ Disclaimer
+This project demonstrates:
 
-This application provides AI-generated informational guidance and is not a medical diagnosis tool. Always consult a licensed healthcare professional for medical concerns.
+* Full-stack system architecture
+* 3D rendering in web applications
+* AI integration using structured prompts
+* Backend validation and safety guardrails
+* Healthcare system modeling
+* Modular and scalable design
 
-🏊 Swimlane Diagram
+---
 
-Below is the swimlane diagram representation.
+# 🚀 Future Enhancements
 
-🏊 Swimlane (Text Representation)
+* Multi-language support (Urdu + English)
+* Database integration (user history)
+* Severity scoring algorithm
+* Authentication system
+* Telemedicine integration
+* Nearby clinic locator
 
-Actors:
+---
 
-User
+# ⚠️ Final Disclaimer
 
-Frontend
+This application is for educational and informational purposes only. It does not provide medical diagnosis or replace consultation with licensed healthcare professionals.
 
-Backend
+---
 
-Gemini API
 
-User        Frontend        Backend        Gemini API
- |              |               |               |
- | Open App     |               |               |
- |------------->|               |               |
- |              | Load 3D Model |               |
- |              |               |               |
- | Select Area  |               |               |
- |------------->| Capture Region|               |
- |              | Generate Form |               |
- | Fill Form    |               |               |
- |------------->| Send JSON ---->|               |
- |              |               | Rule Filter   |
- |              |               | Call Gemini ---------------->|
- |              |               |               | Analyze Data |
- |              |               |<------------------------------|
- |              |<--------------| Structured Response          |
- | View Result  |               |               |
+Tell me which one you need.
