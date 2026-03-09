@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Backend Service - FastAPI
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: anatomy-backend
+    environment:
+      # Load environment variables from .env file in backend directory
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8000:8000"
+    volumes:
+      # For development: mount the code directory to allow hot reload
+      - ./backend/app:/app/app
+    networks:
+      - anatomy-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # Frontend Service - React with Vite and Nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: anatomy-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - anatomy-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+networks:
+  anatomy-network:
+    driver: bridge
+
+volumes:
+  # Can be used for persistent data in future
+  backend_data:
