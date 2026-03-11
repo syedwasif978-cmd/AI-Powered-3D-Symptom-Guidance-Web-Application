@@ -112,7 +112,6 @@ sudo usermod -aG docker $USER
 ```
 AI BAES HUMAN ANATOMY/
 ├── backend/
-│   ├── Dockerfile              # ← Instructions to build backend image
 │   ├── requirements.txt         # Python dependencies
 │   ├── .env                     # Environment variables (don't commit!)
 │   └── app/
@@ -120,45 +119,39 @@ AI BAES HUMAN ANATOMY/
 │       ├── ai_service.py
 │       └── ...
 ├── frontend/
-│   ├── Dockerfile              # ← Instructions to build frontend image
 │   ├── nginx.conf              # ← Nginx web server config
 │   ├── package.json            # Node dependencies
 │   └── src/
 │       ├── App.jsx
 │       └── ...
-├── docker-compose.yml          # ← Orchestrates both containers
-├── .dockerignore               # ← Files to exclude from images
-└── DOCKER_GUIDE.md             # ← This file
+├── docker/                      # ← 🎉 NEW! Docker organization folder
+│   ├── docker-compose.yml      # ← Orchestrates both containers
+│   ├── DOCKER_COMMANDS.md      # Quick command reference
+│   ├── DOCKER_GUIDE.md         # This file
+│   ├── backend/
+│   │   └── Dockerfile          # ← Instructions to build backend image
+│   └── frontend/
+│       └── Dockerfile          # ← Instructions to build frontend image
+└── readme.md
 ```
 
 ### What Each File Does
 
-**Dockerfile (Backend)**
+**docker/backend/Dockerfile**
 - Builds the Python FastAPI application
 - Uses Python 3.10 slim image (lightweight)
 - Installs dependencies, copies code, runs the app on port 8000
 
-**Dockerfile (Frontend)**
+**docker/frontend/Dockerfile**
 - Builds the React + Vite application
 - Stage 1: Compiles React code
 - Stage 2: Serves with Nginx web server on port 80
 
-**docker-compose.yml**
+**docker/docker-compose.yml**
 - Defines two services: backend and frontend
 - Sets up networking between them
 - Maps ports: 8000 (backend), 80 (frontend)
-- automatically starts them together
-
-**nginx.conf**
-- Configuration for Nginx web server
-- Routes `/api/` requests to backend
-- Serves static files with caching
-- Enables SPA routing for React
-
-**.dockerignore**
-- Like `.gitignore` but for Docker
-- Excludes unnecessary files from images (node_modules, .git, etc.)
-- Makes images smaller and builds faster
+- Automatically starts them together
 
 ---
 
@@ -168,10 +161,10 @@ AI BAES HUMAN ANATOMY/
 
 This is the easiest method - it builds and runs both services together.
 
-#### Step 1: Navigate to Project Root
+#### Step 1: Navigate to Docker Folder
 
 ```bash
-cd "d:\UNIVER\UNI\AI BAES HUMAN ANATOMY"
+cd "d:\UNIVER\UNI\AI BAES HUMAN ANATOMY\docker"
 ```
 
 #### Step 2: Build Images
@@ -224,16 +217,16 @@ docker-compose down -v
 #### Build Backend Image Only
 
 ```bash
-cd backend
-docker build -t anatomy-backend:1.0 .
+cd ../backend
+docker build -t anatomy-backend:1.0 -f ../docker/backend/Dockerfile .
 docker run -p 8000:8000 --env-file .env anatomy-backend:1.0
 ```
 
 #### Build Frontend Image Only
 
 ```bash
-cd frontend
-docker build -t anatomy-frontend:1.0 .
+cd ../frontend
+docker build -t anatomy-frontend:1.0 -f ../docker/frontend/Dockerfile .
 docker run -p 3000:80 anatomy-frontend:1.0
 ```
 
@@ -358,7 +351,7 @@ docker exec container-id ls /app
 ### Docker Compose Commands
 
 ```bash
-# Build images
+# Build images (run from docker folder)
 docker-compose build
 
 # Start services
@@ -416,7 +409,7 @@ lsof -i :8000                  # Mac/Linux
 # Kill the process (Windows)
 taskkill /PID process-id /F
 
-# Or use different port in docker-compose.yml
+# Or use different port in docker/docker-compose.yml
 # Change "8000:8000" to "8001:8000"
 ```
 
@@ -458,11 +451,11 @@ docker logs container-id
 
 ```bash
 # Verify .env file exists
-ls -la backend/.env
+ls -la ../backend/.env
 
-# Use env_file in docker-compose.yml
+# Use env_file in docker/docker-compose.yml
 env_file:
-  - ./backend/.env
+  - ../backend/.env
 
 # Or set individually
 environment:
@@ -473,7 +466,7 @@ environment:
 
 ```bash
 # In frontend directory, ensure you have package.json
-cd frontend
+cd ../frontend
 npm init -y
 
 # Add dependencies
@@ -501,127 +494,24 @@ docker system prune -a --volumes
 
 ---
 
-## 📋 Step-by-Step: From Zero to Docker
-
-### Complete Walkthrough
+## 📝 Quick Start (TL;DR)
 
 ```bash
-# 1. Navigate to project
-cd "d:\UNIVER\UNI\AI BAES HUMAN ANATOMY"
+# 1. Open terminal and navigate to docker folder
+cd docker
 
-# 2. Ensure you have Docker installed
-docker --version
-
-# 3. Ensure you have .env file in backend
-ls backend/.env  # Should exist
-
-# 4. Build images
+# 2. Build images
 docker-compose build
 
-# 5. Start services
+# 3. Start services
 docker-compose up -d
 
-# 6. Wait 30 seconds for startup
+# 4. Access your app
+# Backend: http://localhost:8000
+# Frontend: http://localhost
 
-# 7. Test backend
-curl http://localhost:8000/health
-# Should return: {"status":"ok"} or similar
-
-# 8. Test frontend
-# Open browser: http://localhost
-# Should see your React app
-
-# 9. View logs
-docker-compose logs -f
-
-# 10. When done, stop services
+# 5. Stop services
 docker-compose down
 ```
 
----
-
-## 🌐 Deployment Tips
-
-### Deploy to Cloud
-
-**Azure Container Instances:**
-```bash
-# Login to Azure
-az login
-
-# Push to Azure Container Registry
-az acr build --registry myregistry --image anatomy-backend:1.0 .
-
-# Run container
-az container create \
-  --resource-group mygroup \
-  --name anatomy-backend \
-  --image myregistry.azurecr.io/anatomy-backend:1.0 \
-  --ports 8000 \
-  --environment-variables GOOGLE_API_KEY=xxx
-```
-
-**Docker Compose on Server:**
-```bash
-# Copy docker-compose.yml to server
-scp docker-compose.yml user@server:/home/user/
-
-# SSH into server and run
-ssh user@server
-docker-compose up -d
-```
-
----
-
-## 📚 Additional Resources
-
-- [Docker Official Docs](https://docs.docker.com/)
-- [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
-- [Docker Compose Docs](https://docs.docker.com/compose/)
-- [Docker Hub](https://hub.docker.com/)
-- [Play with Docker](https://www.play-with-docker.com/) - Try Docker online
-
----
-
-## ✅ Quick Reference Card
-
-```bash
-# Build & Run
-docker-compose build          # Build images
-docker-compose up -d          # Start services background
-docker-compose down           # Stop services
-
-# Debugging
-docker-compose logs -f        # View logs
-docker ps                     # List running containers
-docker exec -it <id> bash     # Enter container
-
-# Docker Hub
-docker login                  # Login to registry
-docker tag image user/image   # Tag image
-docker push user/image        # Push to Docker Hub
-docker pull user/image        # Pull from Docker Hub
-
-# Cleanup
-docker system prune           # Remove unused objects
-docker images                 # List images
-docker ps -a                  # List all containers
-```
-
----
-
-## 📞 Getting Help
-
-If something goes wrong:
-
-1. **Check logs:** `docker-compose logs -f`
-2. **Verify files exist:** All Dockerfiles and docker-compose.yml in place
-3. **Test connectivity:** `docker exec -it anatomy-backend bash`
-4. **Google error message:** Most Docker errors are common and well-documented
-5. **Stack Overflow:** Tag with `docker` and `docker-compose`
-
----
-
 **Happy containerizing! 🚀**
-
-*Last Updated: March 2026*

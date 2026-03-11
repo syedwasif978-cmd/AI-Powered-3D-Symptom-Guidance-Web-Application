@@ -86,43 +86,40 @@ Frontend Result Rendering
 
 # 📂 Project Structure
 
-## 📁 Frontend
-
 ```
-frontend/
+AI BAES HUMAN ANATOMY/
 │
-├── src/
-│   ├── components/
-│   │   ├── AnatomyModel.jsx
-│   │   ├── QuestionForm.jsx
-│   │   ├── ResultCard.jsx
-│   │
-│   ├── pages/
-│   │   ├── Home.jsx
-│   │   ├── Results.jsx
-│   │
-│   ├── utils/
-│   │   ├── api.js
-│   │
-│   ├── App.jsx
-│   └── main.jsx
-```
-
----
-
-## 📁 Backend
-
-```
-backend/
+├── 📁 backend/                    # Python FastAPI backend
+│   ├── app/
+│   │   ├── main.py
+│   │   ├── ai_service.py
+│   │   ├── models.py
+│   │   └── pain_map.py
+│   ├── requirements.txt
+│   └── .env
 │
-├── app/
-│   ├── main.py
-│   ├── pain_map.py
-│   ├── ai_service.py
-│   ├── models.py
+├── 📁 frontend/                   # React + Vite frontend
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── utils/
+│   ├── public/
+│   ├── package.json
+│   └── nginx.conf
 │
-├── requirements.txt
-└── .env
+├── 📁 docker/                     # 🎉 Docker configuration (ORGANIZED)
+│   ├── docker-compose.yml         # Orchestrates all services
+│   ├── backend/
+│   │   └── Dockerfile            # Backend container config
+│   ├── frontend/
+│   │   └── Dockerfile            # Frontend container config
+│   ├── README.md                  # Quick Docker start
+│   ├── DOCKER_GUIDE.md           # Complete Docker guide
+│   └── DOCKER_COMMANDS.md        # Command reference
+│
+├── .dockerignore                  # Files excluded from images
+├── readme.md                       # This file
+└── DOCKER_REORGANIZATION.md      # Info about Docker folder reorganization
 ```
 
 ---
@@ -304,7 +301,27 @@ Limit:
 
 # ⚙️ Installation Guide
 
-## Backend Setup
+## 🐳 Using Docker (Recommended - Easiest!)
+
+**All Docker files are organized in the `docker/` folder for cleaner structure.**
+
+```bash
+cd docker
+docker-compose build
+docker-compose up -d
+
+# Access your app:
+# Frontend: http://localhost
+# Backend: http://localhost:8000
+```
+
+📖 **Full Docker documentation:** See [`docker/README.md`](./docker/README.md)
+
+---
+
+## Manual Setup (Without Docker)
+
+### Backend Setup
 
 ```bash
 cd backend
@@ -317,7 +334,7 @@ uvicorn app.main:app --reload
 
 ---
 
-## Frontend Setup
+### Frontend Setup
 
 ```bash
 cd frontend
