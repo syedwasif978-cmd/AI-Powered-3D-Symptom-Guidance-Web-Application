@@ -5,16 +5,13 @@ function AnatomyModel({ onAreaSelected }) {
   const canvasRef = useRef(null)
   const [hoveredArea, setHoveredArea] = useState(null)
 
-  // Simple 2D body representation
+  // Simple 2D body representation - using backend-supported region IDs
   const bodyAreas = [
-    { id: 'head', name: 'Head', x: 150, y: 50, radius: 30 },
-    { id: 'chest', name: 'Chest', x: 150, y: 120, radius: 40 },
-    { id: 'stomach', name: 'Stomach', x: 150, y: 180, radius: 35 },
-    { id: 'left_arm', name: 'Left Arm', x: 100, y: 140, radius: 20 },
-    { id: 'right_arm', name: 'Right Arm', x: 200, y: 140, radius: 20 },
-    { id: 'left_leg', name: 'Left Leg', x: 120, y: 250, radius: 25 },
-    { id: 'right_leg', name: 'Right Leg', x: 180, y: 250, radius: 25 },
-    { id: 'back', name: 'Back', x: 150, y: 200, radius: 30 },
+    { id: 'neck', name: 'Neck', x: 150, y: 80, radius: 25 },
+    { id: 'shoulder', name: 'Shoulder', x: 150, y: 120, radius: 30 },
+    { id: 'abdomen', name: 'Abdomen', x: 150, y: 180, radius: 35 },
+    { id: 'lower_back_left', name: 'Lower Back (Left)', x: 130, y: 220, radius: 20 },
+    { id: 'right_knee', name: 'Right Knee', x: 180, y: 280, radius: 25 },
   ]
 
   useEffect(() => {
