@@ -139,6 +139,25 @@ PAIN_MAP = {
     }
 }
 
+# Simple alias map to accept common area IDs from the frontend
+# and map them to the canonical region keys in PAIN_MAP. This allows the
+# frontend to remain simple (e.g., 'right_arm') while the backend uses
+# a smaller set of supported, well-defined regions.
+ALIASES = {
+    "right_arm": "shoulder",
+    "left_arm": "shoulder",
+    "chest": "abdomen",
+    "stomach": "abdomen",
+    "back": "lower_back_left",
+    "lower_back": "lower_back_left",
+    "right_knee": "right_knee",
+    "left_knee": "right_knee",
+    "neck": "neck",
+    "shoulder": "shoulder",
+    "abdomen": "abdomen",
+    "heart": "abdomen"
+}
+
 
 def get_pain_region(location: str) -> dict:
     """
@@ -153,12 +172,18 @@ def get_pain_region(location: str) -> dict:
     Raises:
         ValueError: If location is not supported
     """
-    if location not in PAIN_MAP:
+    # Normalize aliases to canonical region keys
+    loc = location
+    if loc in ALIASES:
+        loc = ALIASES[loc]
+
+    if loc not in PAIN_MAP:
         raise ValueError(
             f"Location '{location}' not supported. "
             f"Available regions: {', '.join(PAIN_MAP.keys())}"
         )
-    return PAIN_MAP[location]
+
+    return PAIN_MAP[loc]
 
 
 def get_all_regions() -> list:

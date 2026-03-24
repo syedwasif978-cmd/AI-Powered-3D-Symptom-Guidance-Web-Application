@@ -38,7 +38,7 @@
   left: 5%;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, #7c3aed, transparent);
+  background: radial-gradient(circle, #c41e3a, transparent);
 }
 
 .hero-shape-2 {
@@ -46,7 +46,7 @@
   right: 10%;
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, #0ea5a8, transparent);
+  background: radial-gradient(circle, #ff6666, transparent);
   animation-delay: 1s;
 }
 
@@ -93,16 +93,16 @@
   gap: 1rem;
   align-items: flex-start;
   padding: 1rem;
-  background: rgba(124, 58, 237, 0.1);
+  background: rgba(196, 30, 58, 0.15);
   border-radius: 15px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(124, 58, 237, 0.2);
+  border: 1px solid rgba(196, 30, 58, 0.4);
   transition: all 0.3s ease;
 }
 
 .highlight-item:hover {
-  background: rgba(124, 58, 237, 0.15);
-  border-color: rgba(124, 58, 237, 0.4);
+  background: rgba(196, 30, 58, 0.3);
+  border-color: rgba(196, 30, 58, 0.7);
   transform: translateX(8px);
 }
 
@@ -146,6 +146,32 @@
   line-height: 1.5;
 }
 
+.low-risk-causes {
+  margin: 1.5rem 0 2rem;
+  padding: 1rem;
+  background: rgba(196, 30, 58, 0.15);
+  border: 1px solid rgba(196, 30, 58, 0.45);
+  border-radius: 14px;
+  color: var(--text-primary);
+}
+
+.low-risk-causes h4 {
+  margin-bottom: 0.5rem;
+  color: var(--primary-deep-blue);
+}
+
+.low-risk-causes ul {
+  margin-left: 1rem;
+  list-style: disc;
+  line-height: 1.4;
+  margin-bottom: 0.6rem;
+}
+
+.low-risk-causes p {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
 /* Hero Illustration */
 .hero-illustration {
   position: relative;
@@ -172,7 +198,7 @@
 .orb-1 {
   width: 200px;
   height: 200px;
-  background: radial-gradient(circle, #7c3aed, transparent);
+  background: radial-gradient(circle, #c41e3a, transparent);
   top: 10%;
   left: 10%;
 }
@@ -180,7 +206,7 @@
 .orb-2 {
   width: 150px;
   height: 150px;
-  background: radial-gradient(circle, #0ea5a8, transparent);
+  background: radial-gradient(circle, #ff6666, transparent);
   bottom: 20%;
   right: 10%;
   animation-delay: 1s;
@@ -189,7 +215,7 @@
 .orb-3 {
   width: 180px;
   height: 180px;
-  background: radial-gradient(circle, #ff9a56, transparent);
+  background: radial-gradient(circle, #d9534f, transparent);
   top: 40%;
   right: 20%;
   animation-delay: 2s;

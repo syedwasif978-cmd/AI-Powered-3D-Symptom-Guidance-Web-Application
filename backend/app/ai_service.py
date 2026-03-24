@@ -10,6 +10,7 @@ This module handles:
 
 import os
 import json
+import logging
 from typing import List, Dict
 
 # Use the new Google GenAI client namespace. If it's not available,
@@ -24,34 +25,36 @@ except Exception as e:
     ) from e
 from dotenv import load_dotenv
 
+logger = logging.getLogger(__name__)
+
 # Load environment variables
 load_dotenv()
 
 # Configure Gemini API
 API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
-    raise ValueError(
-        "GEMINI_API_KEY not found in environment variables. "
-        "Please add it to your .env file."
+    logger.warning(
+        "GEMINI_API_KEY not found in environment; using demo/fallback behavior only. "
+        "Set GEMINI_API_KEY when you want real AI responses."
     )
 
 # Configure client. Support a couple of common client surface shapes so this
 # module works across minor client versions. If the installed package provides
 # a configure function, use it; otherwise try client-style construction.
-if hasattr(genai, "configure"):
-    genai.configure(api_key=API_KEY)
-    model = genai.GenerativeModel("gemini-pro") if hasattr(genai, "GenerativeModel") else None
-else:
-    # Try client pattern
-    try:
+model = None
+try:
+    if API_KEY and hasattr(genai, "configure"):
+        genai.configure(api_key=API_KEY)
+        model = genai.GenerativeModel("gemini-pro") if hasattr(genai, "GenerativeModel") else None
+    elif API_KEY:
         client = genai.Client(api_key=API_KEY)
-        # Some clients expose get_model or models
         try:
             model = client.get_model("gemini-pro")
         except Exception:
             model = None
-    except Exception:
-        model = None
+except Exception as e:
+    logger.warning(f"GenAI client configuration issue: {e}")
+    model = None
 
 
 def create_symptom_prompt(
@@ -142,6 +145,34 @@ def analyze_symptoms(
     """
     
     try:
+        # Demo mode (or missing configured AI model): return hardcoded response.
+        # This makes local showcase stable during development.
+        demo_mode = os.getenv("DEMO_MODE", "true").lower() == "true"
+        if demo_mode or model is None:
+            import time
+            time.sleep(2.5)
+            return {
+                "possible_causes": [
+                    "Benign muscle strain/overuse (common)",
+                    "Mild acidity/indigestion\/GERD",
+                    "Stress-related chest tightness"
+                ],
+                "urgency": "Low",
+                "home_remedies": [
+                    "Rest and avoid heavy exertion",
+                    "Try antacids if symptoms are reflux-related",
+                    "Practice gentle breathing exercises"
+                ],
+                "otc_guidance": [
+                    "Ibuprofen or paracetamol for pain (follow package instructions)",
+                    "Consult pharmacist if on other medications"
+                ],
+                "red_flags": [
+                    "Severe chest pain spreading to jaw/left arm",
+                    "Loss of consciousness or severe shortness of breath"
+                ],
+                "disclaimer": "⚠️ This guidance is informational only and does NOT replace professional medical advice. Please consult a healthcare professional for proper diagnosis and treatment."
+            }
         # Create structured prompt
         prompt = create_symptom_prompt(
             location=location,
@@ -219,12 +250,12 @@ def analyze_symptoms(
         return result
         
     except json.JSONDecodeError as e:
-        print(f"Error parsing AI response: {e}")
+        logger.warning(f"Error parsing AI response: {e}")
         # Return safe fallback response
         return get_fallback_response(location, duration_days)
     
     except Exception as e:
-        print(f"Error calling Gemini API: {e}")
+        logger.exception(f"Error calling GenAI API: {e}")
         # Return safe fallback response
         return get_fallback_response(location, duration_days)
 

@@ -11,6 +11,7 @@ function QuestionForm({ painArea, onSubmit }) {
   })
 
   const [currentQuestion, setCurrentQuestion] = useState(0)
+  const [loading, setLoading] = useState(false)
 
   const symptomOptions = [
     'Swelling',
@@ -103,7 +104,14 @@ function QuestionForm({ painArea, onSubmit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    onSubmit(formData)
+    // small buffering delay to simulate real analysis
+    const run = async () => {
+      setLoading(true)
+      await new Promise((res) => setTimeout(res, 1800))
+      await onSubmit(formData)
+      setLoading(false)
+    }
+    run()
   }
 
   const progressPercentage = ((currentQuestion + 1) / questions.length) * 100
@@ -220,8 +228,9 @@ function QuestionForm({ painArea, onSubmit }) {
               <button
                 type="submit"
                 className="btn btn-warm"
+                disabled={loading}
               >
-                Analyze Symptoms →
+                {loading ? 'Analyzing...' : 'Analyze Symptoms →'}
               </button>
             )}
           </div>

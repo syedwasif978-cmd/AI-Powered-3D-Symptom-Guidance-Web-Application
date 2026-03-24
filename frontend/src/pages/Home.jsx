@@ -45,7 +45,7 @@ function Home({ onNavigateToResults }) {
                 <span className="gradient-text">Intelligent</span> Symptom <br /> Guidance
               </h1>
               <p className="hero-subtitle">
-                Discover AI-powered insights about your health. Interact with a 3D interactive heart to explore cardiac-related symptoms and guidance.
+                Explore your body's regions with our 3D interactive anatomy model and get AI-powered symptom guidance tailored to your location.
               </p>
 
               {/* Feature Highlights */}
@@ -71,6 +71,17 @@ function Home({ onNavigateToResults }) {
                     <p>Instant guidance</p>
                   </div>
                 </div>
+              </div>
+
+              <div className="low-risk-causes">
+                <h4>Common mild causes (usually nothing to worry about):</h4>
+                <ul>
+                  <li>Minor muscle strain or overuse</li>
+                  <li>Stress-related tension</li>
+                  <li>Mild dehydration</li>
+                  <li>Acid reflux or temporary indigestion</li>
+                </ul>
+                <p>These are frequently non-emergency and improve in a few days with rest and hydration.</p>
               </div>
 
               {/* CTA Button */}
@@ -124,8 +135,8 @@ function Home({ onNavigateToResults }) {
               {/* 3D Anatomy Model */}
               <div className="anatomy-container slide-up">
                 <div className="anatomy-header">
-                  <h3>Interactive Heart</h3>
-                  <p className="anatomy-subtitle">Click the heart to select it and provide cardiac-related symptoms</p>
+                  <h3>3D Anatomy Model</h3>
+                  <p className="anatomy-subtitle">Click any body part to select it and provide detailed symptoms</p>
                 </div>
                 <AnatomyModel onAreaSelected={handlePainAreaSelected} />
               </div>
@@ -134,7 +145,16 @@ function Home({ onNavigateToResults }) {
               <div className="quick-select slide-up">
                 <h3>Quick Select</h3>
                 <div className="body-areas">
-                  {[{ name: 'Heart', emoji: '🫀', area: 'heart' }].map((area) => (
+                  {[
+                    { name: 'Head', emoji: '🧠', area: 'head' },
+                    { name: 'Chest', emoji: '🫀', area: 'chest' },
+                    { name: 'Left Arm', emoji: '💪', area: 'left_arm' },
+                    { name: 'Right Arm', emoji: '💪', area: 'right_arm' },
+                    { name: 'Abdomen', emoji: '🫘', area: 'lower_back_left' },
+                    { name: 'Left Leg', emoji: '🦵', area: 'left_leg' },
+                    { name: 'Right Leg', emoji: '🦵', area: 'right_leg' },
+                    { name: 'Heart', emoji: '❤️', area: 'heart' }
+                  ].map((area) => (
                     <button
                       key={area.area}
                       className={`area-btn ${selectedPainArea === area.area ? 'active' : ''}`}

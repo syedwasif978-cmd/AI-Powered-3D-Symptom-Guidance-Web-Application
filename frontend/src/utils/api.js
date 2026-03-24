@@ -20,6 +20,10 @@ export const analyzeSymptoms = async (analysisData) => {
       symptoms: convertSymptomsToDict(analysisData.symptoms, analysisData.onset, analysisData.activities),
     }
 
+    // Allow demo mode to be triggered from frontend during local showcase.
+    // Demo is hidden/controlled server-side by `DEMO_MODE` env var; frontend
+    // still sends the normal request. Server will return demo response when
+    // enabled.
     const response = await api.post('/analyze', transformedData)
     return response.data
   } catch (error) {

@@ -21,7 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 import mimetypes
 
 from app.models import SymptomRequest, MedicalGuidance, ErrorResponse
@@ -31,6 +31,9 @@ from app import ai_service
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Project root (used by multiple endpoints)
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -48,11 +51,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# NOTE: GLB model serving endpoints removed per request to stop using GLB assets.
-# The application will instead rely on the frontend for any interactive anatomy
-# UI. If you later want to restore binary model serving, re-add explicit
-# endpoints that return FileResponse for .glb files.
 
 
 @app.get("/", tags=["Health Check"])
@@ -155,6 +153,10 @@ async def analyze_symptoms(request: SymptomRequest) -> MedicalGuidance:
     """
     
     logger.info(f"Analyzing symptoms for location: {request.location}")
+    try:
+        logger.debug(f"Request payload: {request.json()}" )
+    except Exception:
+        logger.debug("Could not serialize request payload for logging")
     
     try:
         # Validate location
@@ -202,7 +204,8 @@ async def analyze_symptoms(request: SymptomRequest) -> MedicalGuidance:
         raise
     
     except Exception as e:
-        logger.error(f"Unexpected error during analysis: {str(e)}")
+        # Log full traceback for debugging
+        logger.exception("Unexpected error during analysis")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred during symptom analysis. Please try again."
@@ -262,6 +265,30 @@ async def debug_model_check(filename: str):
     return info
 
 
+@app.get("/open-frontend", include_in_schema=False, tags=["Debug"])
+async def open_frontend():
+    """
+    Redirect helper: returns the production frontend index if available,
+    otherwise redirects to the common dev server at http://localhost:5173.
+    This provides a direct access link to the web app from the backend.
+    """
+    try:
+        frontend_dist = os.path.join(PROJECT_ROOT, "frontend", "dist")
+        index_path = os.path.join(frontend_dist, "index.html")
+        if os.path.isfile(index_path):
+            return FileResponse(index_path, media_type="text/html")
+
+        raw_index = os.path.join(PROJECT_ROOT, "frontend", "index.html")
+        if os.path.isfile(raw_index):
+            return FileResponse(raw_index, media_type="text/html")
+    except Exception:
+        pass
+
+    # Fallback to configured dev server URL
+    dev_url = os.getenv("FRONTEND_DEV_URL", "http://localhost:5173")
+    return RedirectResponse(url=dev_url)
+
+
 @app.exception_handler(Exception)
 async def general_exception_handler(request, exc):
     """
@@ -277,6 +304,31 @@ async def general_exception_handler(request, exc):
     )
 
 
+@app.on_event("startup")
+async def startup_event():
+    """
+    Log useful direct links when the application starts. This helps during
+    local development to quickly open the frontend or API docs.
+    """
+    try:
+        api_port = int(os.getenv("PORT", "8000"))
+    except Exception:
+        api_port = 8000
+
+    dev_frontend = os.getenv("FRONTEND_DEV_URL", "http://localhost:5173")
+    prod_frontend = f"http://localhost:{api_port}/"
+    docs_url = f"http://localhost:{api_port}/docs"
+
+    logger.info(f"Frontend (dev): {dev_frontend}")
+    logger.info(f"Direct frontend via backend: http://localhost:{api_port}/open-frontend")
+    logger.info(f"API docs: {docs_url}")
+
+    # Also print to stdout so it's visible when running `python main.py`
+    print("Frontend (dev):", dev_frontend)
+    print("Direct frontend via backend:", f"http://localhost:{api_port}/open-frontend")
+    print("API docs:", docs_url)
+
+
 # Serve frontend static files (single-page app) if a production build exists.
 # This mount is added after API routes so API endpoints take precedence.
 try:
@@ -286,12 +338,15 @@ try:
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     frontend_dist = os.path.join(project_root, "frontend", "dist")
     if os.path.isdir(frontend_dist):
-        app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
+        # Serve only built static assets under /assets (and hydration by /open-frontend)
+        app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
     else:
-        # If no build exists, optionally serve the raw frontend folder (dev), mounted at /frontend
+        # When no dist build, still serve source assets for development paths.
         frontend_dir = os.path.join(project_root, "frontend")
         if os.path.isdir(frontend_dir):
-            app.mount("/frontend", StaticFiles(directory=frontend_dir), name="frontend_dev")
+            app.mount("/src", StaticFiles(directory=os.path.join(frontend_dir, "src")), name="frontend_dev_src")
+            app.mount("/public", StaticFiles(directory=os.path.join(frontend_dir, "public")), name="frontend_dev_public")
+            app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend_dev")
 except Exception:
     logger.warning("Could not mount frontend static files; frontend may not be built yet.")
 
