@@ -4,11 +4,25 @@ FastAPI Main Application - Symptom Guidance System Backend
 This is the main entry point for the AI-powered symptom guidance system.
 It provides the REST API endpoints for the frontend to communicate with.
 """
+import os
+import sys
+
+# When running this file directly (python main.py) ensure the parent
+# directory of the `app` package (the `backend` folder) is on sys.path
+# so absolute imports like `from app.models import ...` succeed.
+if __name__ == "__main__" and __package__ is None:
+    backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if backend_dir not in sys.path:
+        sys.path.insert(0, backend_dir)
+
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import mimetypes
 
 from app.models import SymptomRequest, MedicalGuidance, ErrorResponse
 from app.pain_map import get_pain_region, get_region_red_flags, get_conditions_for_region
@@ -21,7 +35,7 @@ logger = logging.getLogger(__name__)
 # Initialize FastAPI app
 app = FastAPI(
     title="AI Symptom Guidance API",
-    description="An AI-powered symptom guidance system using structured prompt engineering and Gemini API",
+    description="An AI-powered symptom guidance system using structured engineering and Gemini API",
     version="1.0.0"
 )
 
@@ -35,11 +49,26 @@ app.add_middleware(
 )
 
 
+# NOTE: GLB model serving endpoints removed per request to stop using GLB assets.
+# The application will instead rely on the frontend for any interactive anatomy
+# UI. If you later want to restore binary model serving, re-add explicit
+# endpoints that return FileResponse for .glb files.
+
+
 @app.get("/", tags=["Health Check"])
 async def root():
     """
     Root endpoint - Health check
     """
+    # If a production frontend build exists, serve the SPA index.html
+    try:
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        index_path = os.path.join(project_root, "frontend", "dist", "index.html")
+        if os.path.isfile(index_path):
+            return FileResponse(index_path, media_type="text/html")
+    except Exception:
+        pass
+
     return {
         "status": "online",
         "message": "AI Symptom Guidance API is running",
@@ -207,6 +236,32 @@ async def get_region_info(region_id: str):
         )
 
 
+@app.get("/debug/model-check/{filename}", tags=["Debug"])
+async def debug_model_check(filename: str):
+    """
+    Debug endpoint to report which paths the running server is checking
+    and whether the requested model file exists on disk. Useful to di
+    agnose mismatches between the running server and workspace files.
+    """
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    dist_path = os.path.join(project_root, "frontend", "dist", "models", filename)
+    public_path = os.path.join(project_root, "frontend", "public", "models", filename)
+
+    info = {
+        "module_file": __file__,
+        "cwd": os.getcwd(),
+        "dist_path": dist_path,
+        "dist_exists": os.path.isfile(dist_path),
+        "dist_size": os.path.getsize(dist_path) if os.path.isfile(dist_path) else None,
+        "public_path": public_path,
+        "public_exists": os.path.isfile(public_path),
+        "public_size": os.path.getsize(public_path) if os.path.isfile(public_path) else None,
+    }
+
+    logger.info(f"debug_model_check: {info}")
+    return info
+
+
 @app.exception_handler(Exception)
 async def general_exception_handler(request, exc):
     """
@@ -220,6 +275,25 @@ async def general_exception_handler(request, exc):
             "status": "error"
         }
     )
+
+
+# Serve frontend static files (single-page app) if a production build exists.
+# This mount is added after API routes so API endpoints take precedence.
+try:
+    # Ensure .glb files are served with the correct MIME type
+    mimetypes.add_type("model/gltf-binary", ".glb", strict=False)
+    # project root is two levels up from this file (backend/app -> backend -> project root)
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    frontend_dist = os.path.join(project_root, "frontend", "dist")
+    if os.path.isdir(frontend_dist):
+        app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
+    else:
+        # If no build exists, optionally serve the raw frontend folder (dev), mounted at /frontend
+        frontend_dir = os.path.join(project_root, "frontend")
+        if os.path.isdir(frontend_dir):
+            app.mount("/frontend", StaticFiles(directory=frontend_dir), name="frontend_dev")
+except Exception:
+    logger.warning("Could not mount frontend static files; frontend may not be built yet.")
 
 
 if __name__ == "__main__":

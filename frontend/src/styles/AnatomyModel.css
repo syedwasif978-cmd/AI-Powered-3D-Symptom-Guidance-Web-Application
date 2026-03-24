@@ -11,11 +11,15 @@
   justify-content: center;
 }
 
-.anatomy-canvas {
+.three-container {
   width: 100%;
   height: 100%;
   display: block;
-  cursor: crosshair;
+}
+
+.anatomy-model.hovered {
+  /* subtle visual emphasis when interacting */
+  box-shadow: 0 10px 40px rgba(14, 165, 168, 0.07);
 }
 
 .area-hint {

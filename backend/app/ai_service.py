@@ -11,7 +11,17 @@ This module handles:
 import os
 import json
 from typing import List, Dict
-import google.generativeai as genai
+
+# Use the new Google GenAI client namespace. If it's not available,
+# raise a helpful error asking the developer to install the new package.
+try:
+    import google.genai as genai
+except Exception as e:
+    raise ImportError(
+        "google.genai not found. Please install the new GenAI client:\n"
+        "pip install google-genai\n"
+        "Also update backend/requirements.txt accordingly."
+    ) from e
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -25,8 +35,23 @@ if not API_KEY:
         "Please add it to your .env file."
     )
 
-genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel("gemini-pro")
+# Configure client. Support a couple of common client surface shapes so this
+# module works across minor client versions. If the installed package provides
+# a configure function, use it; otherwise try client-style construction.
+if hasattr(genai, "configure"):
+    genai.configure(api_key=API_KEY)
+    model = genai.GenerativeModel("gemini-pro") if hasattr(genai, "GenerativeModel") else None
+else:
+    # Try client pattern
+    try:
+        client = genai.Client(api_key=API_KEY)
+        # Some clients expose get_model or models
+        try:
+            model = client.get_model("gemini-pro")
+        except Exception:
+            model = None
+    except Exception:
+        model = None
 
 
 def create_symptom_prompt(
@@ -127,11 +152,34 @@ def analyze_symptoms(
             red_flags=red_flags
         )
         
-        # Call Gemini API
-        response = model.generate_content(prompt)
+        # Call Gemini / GenAI API. Support a few common call styles to be
+        # compatible with variations of the client API.
+        if model is not None and hasattr(model, "generate_content"):
+            response = model.generate_content(prompt)
+        elif hasattr(genai, "text") and hasattr(genai.text, "generate"):
+            # Newer clients may expose a text.generate helper
+            response = genai.text.generate(model="gemini-pro", prompt=prompt)
+        else:
+            raise RuntimeError(
+                "Unable to call GenAI model: installed google-genai client API is not supported by this shim.\n"
+                "Please ensure you have a compatible version of google-genai installed."
+            )
         
         # Parse response
-        response_text = response.text.strip()
+        # Normalize response text across client versions
+        response_text = getattr(response, "text", None)
+        if response_text is None:
+            # try common alternatives
+            if hasattr(response, "output"):
+                out = response.output
+                if isinstance(out, list) and len(out) > 0 and isinstance(out[0], dict):
+                    response_text = out[0].get("content") or out[0].get("text") or str(out[0])
+                else:
+                    response_text = str(out)
+            else:
+                response_text = str(response)
+
+        response_text = response_text.strip()
         
         # Try to extract JSON from response
         if "```json" in response_text:

@@ -45,7 +45,7 @@ function Home({ onNavigateToResults }) {
                 <span className="gradient-text">Intelligent</span> Symptom <br /> Guidance
               </h1>
               <p className="hero-subtitle">
-                Discover AI-powered insights about your health. Interact with a 3D human anatomy model to pinpoint pain locations and receive comprehensive guidance.
+                Discover AI-powered insights about your health. Interact with a 3D interactive heart to explore cardiac-related symptoms and guidance.
               </p>
 
               {/* Feature Highlights */}
@@ -124,8 +124,8 @@ function Home({ onNavigateToResults }) {
               {/* 3D Anatomy Model */}
               <div className="anatomy-container slide-up">
                 <div className="anatomy-header">
-                  <h3>3D Body Model</h3>
-                  <p className="anatomy-subtitle">Click on the model to select pain location</p>
+                  <h3>Interactive Heart</h3>
+                  <p className="anatomy-subtitle">Click the heart to select it and provide cardiac-related symptoms</p>
                 </div>
                 <AnatomyModel onAreaSelected={handlePainAreaSelected} />
               </div>
@@ -134,16 +134,7 @@ function Home({ onNavigateToResults }) {
               <div className="quick-select slide-up">
                 <h3>Quick Select</h3>
                 <div className="body-areas">
-                  {[
-                    { name: 'Head', emoji: '🗣️', area: 'head' },
-                    { name: 'Chest', emoji: '🫀', area: 'chest' },
-                    { name: 'Stomach', emoji: '🫔', area: 'stomach' },
-                    { name: 'Left Arm', emoji: '💪', area: 'left_arm' },
-                    { name: 'Right Arm', emoji: '💪', area: 'right_arm' },
-                    { name: 'Left Leg', emoji: '🦵', area: 'left_leg' },
-                    { name: 'Right Leg', emoji: '🦵', area: 'right_leg' },
-                    { name: 'Back', emoji: '🔙', area: 'back' },
-                  ].map((area) => (
+                  {[{ name: 'Heart', emoji: '🫀', area: 'heart' }].map((area) => (
                     <button
                       key={area.area}
                       className={`area-btn ${selectedPainArea === area.area ? 'active' : ''}`}

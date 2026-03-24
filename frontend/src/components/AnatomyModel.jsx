@@ -1,150 +1,137 @@
 import { useRef, useEffect, useState } from 'react'
 import '../styles/AnatomyModel.css'
+import * as THREE from 'three'
 
 function AnatomyModel({ onAreaSelected }) {
-  const canvasRef = useRef(null)
-  const [hoveredArea, setHoveredArea] = useState(null)
-
-  // Simple 2D body representation - using backend-supported region IDs
-  const bodyAreas = [
-    { id: 'neck', name: 'Neck', x: 150, y: 80, radius: 25 },
-    { id: 'shoulder', name: 'Shoulder', x: 150, y: 120, radius: 30 },
-    { id: 'abdomen', name: 'Abdomen', x: 150, y: 180, radius: 35 },
-    { id: 'lower_back_left', name: 'Lower Back (Left)', x: 130, y: 220, radius: 20 },
-    { id: 'right_knee', name: 'Right Knee', x: 180, y: 280, radius: 25 },
-  ]
+  const containerRef = useRef(null)
+  const [selected, setSelected] = useState(null)
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
+    const container = containerRef.current
+    if (!container) return
 
-    const ctx = canvas.getContext('2d')
-    const rect = canvas.getBoundingClientRect()
-    const width = rect.width
-    const height = rect.height
+    const scene = new THREE.Scene()
+    scene.background = new THREE.Color(0x081218)
 
-    canvas.width = width
-    canvas.height = height
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100)
+    camera.position.set(0, 0, 6)
 
-    // Clear canvas
-    ctx.fillStyle = 'rgba(15, 20, 25, 0.5)'
-    ctx.fillRect(0, 0, width, height)
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    renderer.setSize(container.clientWidth, container.clientHeight)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    container.appendChild(renderer.domElement)
 
-    // Draw body outline (simplified)
-    ctx.strokeStyle = 'rgba(124, 58, 237, 0.3)'
-    ctx.lineWidth = 2
+    const amb = new THREE.AmbientLight(0xffffff, 0.6)
+    scene.add(amb)
+    const key = new THREE.DirectionalLight(0xffc6c6, 1)
+    key.position.set(5, 10, 7)
+    scene.add(key)
 
-    // Head
-    ctx.beginPath()
-    ctx.arc(150, 50, 30, 0, Math.PI * 2)
-    ctx.stroke()
+    // Heart shape using a parametric path (stylized)
+    const x = 0, y = 0
+    const heartShape = new THREE.Shape()
+    heartShape.moveTo(x, y + 1.2)
+    heartShape.bezierCurveTo(x - 1.1, y + 2.2, x - 2.4, y + 1.2, x, y - 0.6)
+    heartShape.bezierCurveTo(x + 2.4, y + 1.2, x + 1.1, y + 2.2, x, y + 1.2)
 
-    // Body (chest + stomach)
-    ctx.fillStyle = 'rgba(14, 165, 168, 0.05)'
-    ctx.fillRect(120, 90, 60, 140)
-    ctx.strokeRect(120, 90, 60, 140)
+    const extrudeSettings = { depth: 0.8, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 4 }
+    const geo = new THREE.ExtrudeGeometry(heartShape, extrudeSettings)
+    geo.rotateX(Math.PI)
+    geo.translate(0, -0.6, 0)
 
-    // Arms
-    ctx.beginPath()
-    ctx.moveTo(120, 120)
-    ctx.lineTo(70, 140)
-    ctx.stroke()
+    const mat = new THREE.MeshStandardMaterial({ color: 0xd32f2f, metalness: 0.2, roughness: 0.5 })
+    const heart = new THREE.Mesh(geo, mat)
+    heart.castShadow = true
+    heart.position.set(0, 0, 0)
+    scene.add(heart)
 
-    ctx.beginPath()
-    ctx.moveTo(180, 120)
-    ctx.lineTo(230, 140)
-    ctx.stroke()
+    // simple hotspot in front of the heart for click interaction
+    const hotspotMat = new THREE.MeshStandardMaterial({ color: 0xff7f7f, emissive: 0x220000 })
+    const hotspot = new THREE.Mesh(new THREE.SphereGeometry(0.18, 20, 20), hotspotMat)
+    hotspot.position.set(0, 0.2, 0.9)
+    hotspot.userData = { id: 'heart', name: 'Heart' }
+    scene.add(hotspot)
 
-    // Legs
-    ctx.beginPath()
-    ctx.moveTo(130, 230)
-    ctx.lineTo(120, 300)
-    ctx.stroke()
+    const raycaster = new THREE.Raycaster()
+    const pointer = new THREE.Vector2()
 
-    ctx.beginPath()
-    ctx.moveTo(170, 230)
-    ctx.lineTo(180, 300)
-    ctx.stroke()
+    let isDragging = false
+    let prevX = 0
+    let rotationY = 0
 
-    // Draw interactive areas
-    bodyAreas.forEach((area) => {
-      const isHovered = hoveredArea === area.id
-
-      if (isHovered) {
-        ctx.fillStyle = 'rgba(124, 58, 237, 0.3)'
-        ctx.beginPath()
-        ctx.arc(area.x, area.y, area.radius, 0, Math.PI * 2)
-        ctx.fill()
+    function onPointerDown(e) {
+      isDragging = true
+      prevX = e.clientX
+    }
+    function onPointerUp() {
+      isDragging = false
+    }
+    function onPointerMove(e) {
+      const rect = container.getBoundingClientRect()
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+      if (isDragging) {
+        const delta = (e.clientX - prevX) / rect.width
+        rotationY += delta * Math.PI * 0.6
+        prevX = e.clientX
       }
-
-      ctx.strokeStyle = isHovered ? 'rgba(124, 58, 237, 0.8)' : 'rgba(124, 58, 237, 0.3)'
-      ctx.lineWidth = isHovered ? 3 : 2
-      ctx.beginPath()
-      ctx.arc(area.x, area.y, area.radius, 0, Math.PI * 2)
-      ctx.stroke()
-
-      // Label
-      ctx.fillStyle = isHovered ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.5)'
-      ctx.font = `bold 12px Poppins`
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(area.name, area.x, area.y)
-    })
-  }, [hoveredArea])
-
-  const handleCanvasClick = (e) => {
-    const canvas = canvasRef.current
-    const rect = canvas.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-
-    // Check if click is on any body area
-    bodyAreas.forEach((area) => {
-      const distance = Math.sqrt((x - area.x) ** 2 + (y - area.y) ** 2)
-      if (distance < area.radius) {
-        onAreaSelected(area.id)
+    }
+    function onClick(e) {
+      const rect = container.getBoundingClientRect()
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+      raycaster.setFromCamera(pointer, camera)
+      const hits = raycaster.intersectObjects([hotspot], true)
+      if (hits.length > 0) {
+        const obj = hits[0].object
+        setSelected(obj.userData)
+        if (typeof onAreaSelected === 'function') onAreaSelected(obj.userData)
       }
-    })
-  }
+    }
 
-  const handleCanvasMouseMove = (e) => {
-    const canvas = canvasRef.current
-    const rect = canvas.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
+    container.addEventListener('pointerdown', onPointerDown)
+    window.addEventListener('pointerup', onPointerUp)
+    container.addEventListener('pointermove', onPointerMove)
+    container.addEventListener('click', onClick)
 
-    let found = null
+    function resize() {
+      const w = container.clientWidth
+      const h = container.clientHeight
+      camera.aspect = w / h
+      camera.updateProjectionMatrix()
+      renderer.setSize(w, h)
+    }
+    window.addEventListener('resize', resize)
 
-    // Check if cursor is on any body area
-    bodyAreas.forEach((area) => {
-      const distance = Math.sqrt((x - area.x) ** 2 + (y - area.y) ** 2)
-      if (distance < area.radius) {
-        found = area.id
-      }
-    })
+    const clock = new THREE.Clock()
+    function animate() {
+      requestAnimationFrame(animate)
+      const dt = clock.getDelta()
+      heart.rotation.y = rotationY * 0.5
+      hotspot.rotation.y = rotationY * 0.5
+      renderer.render(scene, camera)
+    }
+    animate()
 
-    setHoveredArea(found)
-    canvas.style.cursor = found ? 'pointer' : 'default'
-  }
+    camera.lookAt(0, 0, 0)
 
-  const handleCanvasMouseLeave = () => {
-    setHoveredArea(null)
-  }
+    return () => {
+      container.removeEventListener('pointerdown', onPointerDown)
+      container.removeEventListener('pointermove', onPointerMove)
+      container.removeEventListener('click', onClick)
+      window.removeEventListener('pointerup', onPointerUp)
+      window.removeEventListener('resize', resize)
+      renderer.dispose()
+      if (renderer.domElement && renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement)
+    }
+  }, [])
 
   return (
-    <div className="anatomy-model">
-      <canvas
-        ref={canvasRef}
-        onClick={handleCanvasClick}
-        onMouseMove={handleCanvasMouseMove}
-        onMouseLeave={handleCanvasMouseLeave}
-        className="anatomy-canvas"
-      />
-      {hoveredArea && (
-        <div className="area-hint">
-          Click to select <strong>{bodyAreas.find(a => a.id === hoveredArea)?.name}</strong>
-        </div>
-      )}
+    <div className="anatomy-model" style={{ position: 'relative' }}>
+      <div ref={containerRef} className="three-container" style={{ width: '100%', height: '520px' }} />
+      <div className="anatomy-label" style={{ position: 'absolute', left: 12, bottom: 12, color: '#fff', background: 'rgba(0,0,0,0.45)', padding: '8px 12px', borderRadius: 8 }}>
+        {selected ? <div><strong>{selected.name}</strong><div style={{ fontSize: 12, opacity: 0.9 }}>{selected.id}</div></div> : <div>Click the heart to select it</div>}
+      </div>
     </div>
   )
 }
